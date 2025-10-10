@@ -1,9 +1,9 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Full Stack App',
-  description: 'A full stack application with FastAPI and Next.js',
+  title: 'AI on FHIR',
+  description: 'Healthcare data visualization',
 }
 
 export default function RootLayout({
