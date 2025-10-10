@@ -14,4 +14,9 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
+## Endpoints
+
+- `POST /query` - Natural language query endpoint
+- `GET /api/health` - Health check
+
 API docs at http://localhost:8000/docs
