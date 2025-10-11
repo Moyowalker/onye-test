@@ -47,7 +47,7 @@ def filter_by_condition(data: list, conditions: list) -> list:
 
 def get_mock_data(processed_query: dict):
     """
-    Return mock FHIR-like data based on processed query with entity filtering
+    Return FHIR-formatted data based on processed query with entity filtering
     """
     intent = processed_query.get("intent", "unknown")
     entities = processed_query.get("entities", {})
@@ -58,22 +58,114 @@ def get_mock_data(processed_query: dict):
         patients = generate_mock_patients()
         if age_filter:
             patients = filter_by_age(patients, age_filter)
-        return patients
+        return to_fhir_bundle(patients, "Patient")
     
     elif intent == "condition_search":
         condition_data = generate_mock_conditions()
         if conditions:
             condition_data = filter_by_condition(condition_data, conditions)
-        return condition_data
+        return to_fhir_bundle(condition_data, "Condition")
     
     elif intent == "medication_search":
-        return generate_mock_medications()
+        medications = generate_mock_medications()
+        return to_fhir_bundle(medications, "MedicationRequest")
     
     elif intent == "observation_search":
-        return generate_mock_observations()
+        observations = generate_mock_observations()
+        return to_fhir_bundle(observations, "Observation")
     
     else:
-        return {"message": "No data available for this query"}
+        return {
+            "resourceType": "OperationOutcome",
+            "issue": [{
+                "severity": "information",
+                "code": "not-found",
+                "diagnostics": "No data available for this query"
+            }]
+        }
+
+def to_fhir_bundle(resources: list, resource_type: str) -> dict:
+    """Convert resources to FHIR Bundle format"""
+    entries = []
+    
+    for resource in resources:
+        if resource_type == "Patient":
+            fhir_resource = {
+                "resourceType": "Patient",
+                "id": resource["id"],
+                "name": [{
+                    "use": "official",
+                    "text": resource["name"]
+                }],
+                "gender": resource["gender"],
+                "birthDate": resource["birthDate"],
+                "extension": [{
+                    "url": "http://hl7.org/fhir/StructureDefinition/patient-age",
+                    "valueInteger": resource["age"]
+                }]
+            }
+        elif resource_type == "Condition":
+            fhir_resource = {
+                "resourceType": "Condition",
+                "id": resource["id"],
+                "subject": {
+                    "reference": f"Patient/{resource['patient']}",
+                    "display": resource["patientName"]
+                },
+                "code": {
+                    "coding": [{
+                        "system": "http://snomed.info/sct",
+                        "code": resource["code"],
+                        "display": resource["display"]
+                    }]
+                },
+                "onsetDateTime": resource["onsetDate"]
+            }
+        elif resource_type == "MedicationRequest":
+            fhir_resource = {
+                "resourceType": "MedicationRequest",
+                "id": resource["id"],
+                "subject": {
+                    "reference": f"Patient/{resource['patient']}"
+                },
+                "medicationCodeableConcept": {
+                    "text": resource["medication"]
+                },
+                "dosageInstruction": [{
+                    "text": f"{resource['dosage']} {resource['frequency']}"
+                }]
+            }
+        elif resource_type == "Observation":
+            fhir_resource = {
+                "resourceType": "Observation",
+                "id": resource["id"],
+                "status": "final",
+                "subject": {
+                    "reference": f"Patient/{resource['patient']}"
+                },
+                "code": {
+                    "text": resource["type"]
+                },
+                "valueQuantity": {
+                    "value": resource["value"],
+                    "unit": resource["unit"]
+                },
+                "effectiveDateTime": resource["date"]
+            }
+        else:
+            fhir_resource = resource
+        
+        entries.append({
+            "fullUrl": f"http://example.com/fhir/{resource_type}/{resource.get('id', 'unknown')}",
+            "resource": fhir_resource
+        })
+    
+    return {
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "total": len(entries),
+        "entry": entries
+    }
 
 def generate_mock_patients():
     return [
