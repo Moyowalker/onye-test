@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import QueryInput from '@/components/QueryInput'
 import QueryResults from '@/components/QueryResults'
+import DataVisualization from '@/components/DataVisualization'
 
 interface QueryResponse {
   query: string
@@ -66,11 +67,15 @@ export default function Home() {
           )}
 
           {result && (
-            <QueryResults
-              query={result.query}
-              nlpAnalysis={result.nlp_analysis}
-              fhirResponse={result.fhir_response}
-            />
+            <>
+              <DataVisualization fhirResponse={result.fhir_response} />
+              
+              <QueryResults
+                query={result.query}
+                nlpAnalysis={result.nlp_analysis}
+                fhirResponse={result.fhir_response}
+              />
+            </>
           )}
         </main>
       </div>

@@ -10,6 +10,18 @@ Natural language query input with suggestions
 - Loading state
 - Keyboard submit support
 
+## DataVisualization Component
+Interactive charts using Recharts
+
+**Features:**
+- **Age Distribution Chart**: Bar chart showing patient count by age range (0-20, 21-30, etc.)
+- **Gender Distribution Chart**: Pie chart showing male/female distribution
+- **Condition Distribution**: Bar chart + Pie chart showing condition frequency
+- Auto-detects resource type (Patient vs Condition)
+- Responsive charts
+- Color-coded visualizations
+- Shows total counts
+
 ## QueryResults Component
 Displays FHIR-formatted query results
 
@@ -22,10 +34,11 @@ Displays FHIR-formatted query results
 - Color-coded by resource type
 
 ## Main Page
-Integrates both components with API calls
+Integrates all components with API calls
 
 **Features:**
 - Fetches from backend at `http://localhost:8000/query`
 - Loading states
 - Error handling
 - Clean, responsive layout
+- Shows visualizations above detailed results
