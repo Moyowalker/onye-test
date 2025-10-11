@@ -27,16 +27,27 @@ async def health():
 
 @app.post("/query")
 async def query_endpoint(request: QueryRequest):
+    """
+    Process natural language query and return filtered FHIR data
+    """
     try:
+        # Parse the natural language query
         processed = process_query(request.query)
-        data = get_mock_data(processed)
+        
+        # Get filtered mock data based on parsed intent and entities
+        fhir_data = get_mock_data(processed)
+        
+        # Return structured response
         return {
             "query": request.query,
-            "processed": processed,
-            "results": data
+            "nlp_analysis": {
+                "intent": processed.get("intent"),
+                "entities": processed.get("entities"),
+            },
+            "fhir_response": fhir_data
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
