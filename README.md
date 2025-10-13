@@ -1,6 +1,14 @@
 # AI on FHIR Query System
 
-Hello Emmanuel! This is my take on building a natural language interface for FHIR healthcare data. The idea was to let people query patient records and medical conditions without writing complex database queries - just ask in plain English.
+Hello Emmanuel,
+
+This is my take on building a natural language interface for FHIR healthcare data. The goal was to let people query patient records and medical conditions without writing complex database queries — just using plain English.
+
+## 🔗 Quick Links
+
+- 🖥️ [Frontend Live Demo](https://onye-test.vercel.app)
+- 🧠 [HIPAA Compliance Plan (PDF)](./HIPAA_Compliance_and_Security_Plan_by_Moyo.pdf)
+- 🐳 [Docker Guide](./docker_guide.md)
 
 ## Screenshots
 
@@ -30,7 +38,7 @@ I deployed the frontend to Vercel and Dockerized everything so you can spin it u
 
 ### Docker Way (easiest):
 ```bash
-git clone <repo-url>
+git clone https://github.com/Moyowalker/onye-test.git
 cd onye-test
 docker-compose up --build
 ```
@@ -39,6 +47,8 @@ Then open:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - API docs: http://localhost:8000/docs
+
+See [docker_guide.md](./docker_guide.md) for more detailed Docker instructions.
 
 ### Local Development:
 
@@ -103,7 +113,13 @@ npm run dev
 
 - The backend runs on port 8000, frontend on 3000
 - CORS is configured for localhost:3000
-- Check out DOCKER_GUIDE.md for deployment details
-- HIPAA considerations are documented separately
+- Check out [docker_guide.md](./docker_guide.md) for deployment details
+- HIPAA considerations are documented in the [PDF compliance plan](./HIPAA_Compliance_and_Security_Plan_by_Moyo.pdf)
 
-Feel free to reach out if you have questions or want to discuss the implementation choices!
+---
+
+Thanks for reviewing my submission.
+
+I really enjoyed building this — especially the challenge of bridging NLP and FHIR in a way that feels natural and useful.
+
+— Moyosore Ajayi
