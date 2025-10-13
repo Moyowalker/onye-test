@@ -198,4 +198,13 @@ docker-compose exec frontend sh
 - Network isolation between services
 - Production builds exclude development dependencies
 
-This Docker setup demonstrates containerization best practices while maintaining development workflow efficiency.
+## About This Setup
+
+This Docker configuration was manually crafted to showcase DevOps capabilities and containerization expertise. The setup demonstrates:
+- Multi-container orchestration
+- Service health monitoring
+- Development-production parity
+- Security best practices
+- Performance optimization
+
+Every configuration choice was deliberately made to balance development convenience with production readiness.
