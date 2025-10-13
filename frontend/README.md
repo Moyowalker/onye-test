@@ -1,18 +1,19 @@
-# Frontend - Next.js + TypeScript# ai-on-fhir-ui
+# Frontend - Next.js + TypeScript
 
+This is the web interface where users can type natural language queries and see results with visualizations.
 
+## Screenshots
 
-This is the web interface where users can type natural language queries and see results with visualizations.```bash
+### Query Interface
+![Query Input](../screenshots/home-page.png)
 
-npm install
+### Results & Visualizations
+![Query Results](../screenshots/query-results.png)
 
-## Running Locallynpm run dev
-
-```
+## Running Locally
 
 ```bash
-
-# Install dependencieslocalhost:3000
+# Install dependencies
 npm install
 
 # Start dev server

@@ -2,6 +2,20 @@
 
 Hello Emmanuel! This is my take on building a natural language interface for FHIR healthcare data. The idea was to let people query patient records and medical conditions without writing complex database queries - just ask in plain English.
 
+## Screenshots
+
+### Main Interface
+![Application Home](./screenshots/home-page.png)
+*Natural language query input with pre-built suggestions*
+
+### Query Results with Visualizations
+![Query Results](./screenshots/query-results.png)
+*Patient data displayed with interactive charts showing age distribution, gender breakdown, and condition statistics*
+
+### API Documentation
+![API Docs](./screenshots/api-docs.png)
+*FastAPI Swagger UI for backend endpoints*
+
 ## What It Does
 
 Type something like "show me patients with diabetes" and the system:
