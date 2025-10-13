@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 interface QueryInputProps {
   onSubmit: (query: string) => void
+  onClear?: () => void
   loading?: boolean
 }
 
@@ -18,8 +19,15 @@ const SUGGESTIONS = [
   "get observations for vital signs"
 ]
 
-export default function QueryInput({ onSubmit, loading = false }: QueryInputProps) {
+export default function QueryInput({ onSubmit, onClear, loading = false }: QueryInputProps) {
   const [query, setQuery] = useState('')
+
+  const handleClear = () => {
+    setQuery('')
+    if (onClear) {
+      onClear()
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,7 +61,7 @@ export default function QueryInput({ onSubmit, loading = false }: QueryInputProp
           {query && (
             <button
               type="button"
-              onClick={() => setQuery('')}
+              onClick={handleClear}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

@@ -45,6 +45,11 @@ export default function Home() {
     }
   }
 
+  const handleClear = () => {
+    setResult(null)
+    setError(null)
+  }
+
   return (
     <div className="min-h-screen bg-blue-50">
       <div className="container mx-auto px-4 py-10">
@@ -65,7 +70,7 @@ export default function Home() {
         </header>
 
         <main className="space-y-8">
-          <QueryInput onSubmit={handleQuery} loading={loading} />
+          <QueryInput onSubmit={handleQuery} onClear={handleClear} loading={loading} />
 
           {error && (
             <div className="max-w-4xl mx-auto mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-r shadow-sm">
