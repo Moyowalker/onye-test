@@ -51,24 +51,72 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50">
-      <div className="container mx-auto px-4 py-10">
-        <header className="mb-10">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-md">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation Bar */}
+      <nav className="bg-white shadow-lg border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            {/* Logo and Brand */}
+            <div className="flex items-center">
+              <div className="flex-shrink-0 flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">AI on FHIR</h1>
+                  <p className="text-xs text-gray-500">Healthcare Intelligence</p>
+                </div>
+              </div>
             </div>
-            <h1 className="text-4xl font-bold text-gray-900">
-              AI on FHIR Query System
-            </h1>
-          </div>
-          <p className="text-lg text-gray-600 ml-15">
-            Natural language queries for patient and medical data
-          </p>
-        </header>
 
+            {/* Navigation Links */}
+            <div className="hidden md:block">
+              <div className="ml-10 flex items-baseline space-x-8">
+                <span className="text-emerald-600 px-3 py-2 rounded-md text-sm font-semibold border-b-2 border-emerald-600">
+                  Query
+                </span>
+              </div>
+            </div>
+
+            {/* Right side - Profile/Status */}
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-gray-600">Live</span>
+              </div>
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <div className="relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+              <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                AI on FHIR
+              </span>
+              <br />
+              <span className="text-gray-800">Query System</span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+              Transform complex medical data into actionable insights using natural language queries. 
+              Search patient records, analyze conditions, and visualize healthcare data effortlessly.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <main className="space-y-8">
           <QueryInput onSubmit={handleQuery} onClear={handleClear} loading={loading} />
 

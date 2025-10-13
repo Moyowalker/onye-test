@@ -55,7 +55,7 @@ export default function QueryInput({ onSubmit, onClear, loading = false }: Query
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Ask about patients, conditions, or medical records..."
-            className="w-full pl-12 pr-12 py-4 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 shadow-sm"
+            className="w-full pl-12 pr-12 py-4 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 shadow-sm"
             disabled={loading}
           />
           {query && (
@@ -74,7 +74,7 @@ export default function QueryInput({ onSubmit, onClear, loading = false }: Query
         <button
           type="submit"
           disabled={!query.trim() || loading}
-          className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 active:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-md transition-colors"
+          className="w-full px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 active:bg-emerald-800 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-md transition-colors"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -96,7 +96,7 @@ export default function QueryInput({ onSubmit, onClear, loading = false }: Query
               key={index}
               onClick={() => handleSuggestionClick(suggestion)}
               disabled={loading}
-              className="px-3 py-2 text-sm bg-white text-gray-700 border border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50 transition-all shadow-sm"
+              className="px-3 py-2 text-sm bg-white text-gray-700 border border-gray-300 rounded-lg hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-50 transition-all shadow-sm"
             >
               {suggestion}
             </button>
