@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from nlp import process_query
-from fhir_repository import get_repository
+from fhir_repository import get_repository, build_repository
 from auth.middleware import validate_jwt_token
 from auth.models import AuthenticatedUser
 from auth.scopes import check_required_scopes, PATIENT_READ_SCOPES, USER_READ_SCOPES
@@ -52,6 +52,17 @@ async def health():
     except Exception:
         return {"status": "ok", "data_source": "unknown"}
 
+
+@app.post("/api/toggle-data-source")
+async def toggle_data_source(mode: str):
+    """
+    Switch the backend data source at runtime.
+    mode: "mock" | "hapi"
+    """
+    global repo
+    repo = build_repository(mode)
+    return {"status": "ok", "data_source": type(repo).__name__}
+
 @app.get("/api/user")
 async def get_user_info(jwt_claims: dict = Depends(validate_jwt_token)):
     """
@@ -72,8 +83,9 @@ async def get_user_info(jwt_claims: dict = Depends(validate_jwt_token)):
 
 @app.post("/query")
 async def query_endpoint(
-    request: QueryRequest, 
-    jwt_claims: dict = Depends(validate_jwt_token)
+    request: QueryRequest,
+    jwt_claims: dict = Depends(validate_jwt_token),
+    source: str | None = None,
 ):
     """
     Process natural language query and return filtered FHIR data
@@ -103,8 +115,10 @@ async def query_endpoint(
         # Parse the natural language query
         processed = process_query(request.query)
         
+        # Optionally switch source per-request via querystring ?source=hapi|mock
+        active_repo = repo if not source else build_repository(source)
         # Fetch FHIR data from the selected repository (mock or HAPI)
-        fhir_data = repo.search(processed, user_context=user.get_data_filter_context())
+        fhir_data = active_repo.search(processed, user_context=user.get_data_filter_context())
         
         # Return structured response with user context
         return {

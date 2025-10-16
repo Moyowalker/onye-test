@@ -19,6 +19,23 @@ export default function AuthButton() {
     })
   }, [])
 
+  const toggleSource = async () => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const next = source === 'HapiFhirRepository' ? 'mock' : 'hapi'
+    try {
+      await fetch(`${apiBase}/api/toggle-data-source?mode=${next}`, { method: 'POST' })
+      // Re-fetch health to update badge
+      const r = await fetch(`${apiBase}/api/health`)
+      const j = await r.json()
+      if (j?.data_source) setSource(j.data_source)
+      if (j?.fhir_base_url) setSourceUrl(j.fhir_base_url)
+    } catch {
+      // If failed, mark offline
+      setSource('Offline')
+      setSourceUrl(apiBase)
+    }
+  }
+
   // Show loading state while checking auth status
   // This prevents the login button from flashing before session loads
   if (status === "loading") {
@@ -49,6 +66,15 @@ export default function AuthButton() {
               source
             }
           </span>
+        )}
+        {session && source && source !== 'Offline' && (
+          <button
+            onClick={toggleSource}
+            className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300"
+            title="Toggle data source between Mock and HAPI"
+          >
+            Toggle
+          </button>
         )}
         {/* Show user info and their FHIR permissions */}
         <div className="text-sm">

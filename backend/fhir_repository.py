@@ -142,7 +142,12 @@ class HapiFhirRepository(FhirRepository):
         return self._get("metadata")
 
 
-def get_repository() -> FhirRepository:
-    if FHIR_SERVER_TYPE == "hapi":
+def build_repository(repo_type: str) -> FhirRepository:
+    t = (repo_type or "").lower()
+    if t == "hapi":
         return HapiFhirRepository(FHIR_BASE_URL, FHIR_TIMEOUT)
     return MockRepository()
+
+
+def get_repository() -> FhirRepository:
+    return build_repository(FHIR_SERVER_TYPE)
