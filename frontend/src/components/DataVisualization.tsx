@@ -4,8 +4,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 
 interface Patient {
   id: string
-  name: Array<{ text: string }>
-  extension: Array<{ valueInteger: number }>
+  name?: Array<{ text?: string }>
+  extension?: Array<{ valueInteger?: number }>
+  birthDate?: string
+  gender?: string
 }
 
 interface Condition {
@@ -34,6 +36,23 @@ export default function DataVisualization({ fhirResponse }: DataVisualizationPro
 
   const resourceType = fhirResponse.entry[0]?.resource?.resourceType
 
+  // Helper to compute age from birthDate (fallback when extension is missing)
+  const getAge = (patient: Patient): number | undefined => {
+    const extAge = patient.extension?.[0]?.valueInteger
+    if (typeof extAge === 'number') return extAge
+    if (!patient.birthDate) return undefined
+    try {
+      const birth = new Date(patient.birthDate)
+      const today = new Date()
+      let age = today.getFullYear() - birth.getFullYear()
+      const m = today.getMonth() - birth.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+      return age
+    } catch {
+      return undefined
+    }
+  }
+
   // Age Distribution Chart for Patients
   const renderAgeDistribution = () => {
     const patients = fhirResponse.entry?.filter(
@@ -54,7 +73,8 @@ export default function DataVisualization({ fhirResponse }: DataVisualizationPro
     }
 
     patients.forEach((patient) => {
-      const age = patient.extension[0].valueInteger
+      const age = getAge(patient)
+      if (typeof age !== 'number') return
       if (age <= 20) ageRanges['0-20']++
       else if (age <= 30) ageRanges['21-30']++
       else if (age <= 40) ageRanges['31-40']++
@@ -90,7 +110,7 @@ export default function DataVisualization({ fhirResponse }: DataVisualizationPro
         </ResponsiveContainer>
         <div className="mt-4 pt-3 border-t border-gray-200">
           <p className="text-sm text-gray-600">
-            Total: <span className="font-semibold text-emerald-600">{patients.length}</span> patients
+            Total: <span className="font-semibold text-emerald-600">{patients.filter(p => typeof getAge(p) === 'number').length}</span> patients
           </p>
         </div>
       </div>

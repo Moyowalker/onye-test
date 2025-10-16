@@ -1,8 +1,23 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { useSession, signIn, signOut } from "next-auth/react"
 export default function AuthButton() {
   const { data: session, status } = useSession()
+  const [source, setSource] = useState<string | null>(null)
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    fetch(`${apiBase}/api/health`).then(async (r) => {
+      const j = await r.json()
+      if (j?.data_source) setSource(j.data_source)
+      if (j?.fhir_base_url) setSourceUrl(j.fhir_base_url)
+    }).catch(() => {
+      setSource('Offline')
+      setSourceUrl(apiBase)
+    })
+  }, [])
 
   // Show loading state while checking auth status
   // This prevents the login button from flashing before session loads
@@ -15,10 +30,26 @@ export default function AuthButton() {
     )
   }
 
-  // User is authenticated - show their info and logout option
+  // User is authenticated - show their info, data source, and logout option
   if (session) {
     return (
       <div className="flex items-center space-x-4">
+        {source && (
+          <span
+            className={`px-2 py-1 text-xs rounded-full border ${
+              source === 'Offline'
+                ? 'bg-red-50 text-red-700 border-red-200'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            }`}
+            title={sourceUrl || undefined}
+          >
+            Source: {
+              source === 'HapiFhirRepository' ? 'HAPI' :
+              source === 'MockRepository' ? 'Mock' :
+              source
+            }
+          </span>
+        )}
         {/* Show user info and their FHIR permissions */}
         <div className="text-sm">
           <div className="font-medium text-gray-900">

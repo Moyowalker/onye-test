@@ -2,10 +2,10 @@
 
 interface Patient {
   id: string
-  name: Array<{ text: string }>
-  gender: string
-  birthDate: string
-  extension: Array<{ valueInteger: number }>
+  name?: Array<{ text?: string; given?: string[]; family?: string }>
+  gender?: string
+  birthDate?: string
+  extension?: Array<{ valueInteger?: number }>
 }
 
 interface Condition {
@@ -35,6 +35,32 @@ interface QueryResultsProps {
 export default function QueryResults({ query, nlpAnalysis, fhirResponse }: QueryResultsProps) {
   if (!fhirResponse) return null
 
+  const getAge = (patient: Patient): number | undefined => {
+    const extAge = patient.extension?.[0]?.valueInteger
+    if (typeof extAge === 'number') return extAge
+    if (!patient.birthDate) return undefined
+    try {
+      const birth = new Date(patient.birthDate)
+      const today = new Date()
+      let age = today.getFullYear() - birth.getFullYear()
+      const m = today.getMonth() - birth.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+      return age
+    } catch {
+      return undefined
+    }
+  }
+
+  const getPatientName = (patient: Patient): string => {
+    const n = patient.name?.[0]
+    if (!n) return 'Unknown'
+    if (n.text && n.text.trim().length > 0) return n.text
+    const given = (n.given || []).join(' ').trim()
+    const family = (n.family || '').trim()
+    const full = `${given} ${family}`.trim()
+    return full || 'Unknown'
+  }
+
   const renderPatient = (patient: Patient) => (
     <div className="p-5 bg-white border-l-4 border-emerald-500 rounded-lg shadow-md hover:shadow-lg transition-shadow">
       <div className="flex justify-between items-start mb-4">
@@ -45,7 +71,7 @@ export default function QueryResults({ query, nlpAnalysis, fhirResponse }: Query
             </svg>
           </div>
           <div>
-            <h3 className="font-bold text-lg text-gray-900">{patient.name[0].text}</h3>
+            <h3 className="font-bold text-lg text-gray-900">{getPatientName(patient)}</h3>
             <p className="text-xs text-gray-500">ID: {patient.id}</p>
           </div>
         </div>
@@ -55,13 +81,13 @@ export default function QueryResults({ query, nlpAnalysis, fhirResponse }: Query
       </div>
       <div className="text-sm space-y-2 text-gray-700">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-900">Age:</span> {patient.extension[0].valueInteger} years
+          <span className="font-semibold text-gray-900">Age:</span> {typeof getAge(patient) === 'number' ? `${getAge(patient)} years` : 'Unknown'}
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-900">Gender:</span> {patient.gender}
+          <span className="font-semibold text-gray-900">Gender:</span> {patient.gender || 'Unknown'}
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-900">Birth Date:</span> {patient.birthDate}
+          <span className="font-semibold text-gray-900">Birth Date:</span> {patient.birthDate || 'Unknown'}
         </div>
       </div>
     </div>
@@ -77,7 +103,7 @@ export default function QueryResults({ query, nlpAnalysis, fhirResponse }: Query
             </svg>
           </div>
           <div>
-            <h3 className="font-bold text-lg text-gray-900">{condition.code.coding[0].display}</h3>
+            <h3 className="font-bold text-lg text-gray-900">{condition.code?.coding?.[0]?.display || 'Condition'}</h3>
             <p className="text-xs text-gray-500">ID: {condition.id}</p>
           </div>
         </div>
@@ -87,10 +113,10 @@ export default function QueryResults({ query, nlpAnalysis, fhirResponse }: Query
       </div>
       <div className="text-sm space-y-2 text-gray-700">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-900">Patient:</span> {condition.subject.display}
+          <span className="font-semibold text-gray-900">Patient:</span> {condition.subject?.display || 'Unknown'}
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-900">Onset:</span> {condition.onsetDateTime}
+          <span className="font-semibold text-gray-900">Onset:</span> {condition.onsetDateTime || 'Unknown'}
         </div>
       </div>
     </div>

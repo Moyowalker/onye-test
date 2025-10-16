@@ -72,7 +72,7 @@ class FhirRepository:
 
 class MockRepository(FhirRepository):
     def __init__(self):
-        from . import mock_data  # local import to avoid circular
+        import mock_data  # import from backend working directory
         self._mock = mock_data
 
     def search(self, processed_query: Dict, user_context: Optional[Dict] = None) -> Dict:

@@ -1,3 +1,9 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()  # Load from CWD if present
+_env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".env"))
+load_dotenv(dotenv_path=_env_path, override=False)
+
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -35,7 +41,16 @@ async def root():
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok"}
+    try:
+        # Report which repo is active and the base URL if HAPI
+        repo_name = type(repo).__name__
+        info = {"status": "ok", "data_source": repo_name}
+        if repo_name == "HapiFhirRepository":
+            # getattr for safety in case attributes are missing
+            info["fhir_base_url"] = getattr(repo, "base", None)
+        return info
+    except Exception:
+        return {"status": "ok", "data_source": "unknown"}
 
 @app.get("/api/user")
 async def get_user_info(jwt_claims: dict = Depends(validate_jwt_token)):
