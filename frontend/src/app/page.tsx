@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import QueryInput from '@/components/QueryInput'
 import QueryResults from '@/components/QueryResults'
 import DataVisualization from '@/components/DataVisualization'
+import AuthButton from '@/components/AuthButton'
 
 interface QueryResponse {
   query: string
@@ -18,22 +20,53 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<QueryResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  
+  // Get the user's session and access token for API calls
+  // This is the key to SMART on FHIR - we need the token with proper scopes
+  const { data: session, status } = useSession()
 
   const handleQuery = async (query: string) => {
+    // Don't allow queries without authentication
+    // This enforces our security model - no anonymous access to FHIR data
+    if (!session?.accessToken) {
+      setError('You must be signed in to query FHIR data')
+      return
+    }
+
     setLoading(true)
     setError(null)
     
     try {
-      const response = await fetch('http://localhost:8000/query', {
+      // Now I'm sending the Bearer token with every request
+      // The backend will validate this JWT and check SMART scopes
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  const response = await fetch(`${apiBase}/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // This is the magic - passing the OAuth access token
+          'Authorization': `Bearer ${session.accessToken}`,
         },
         body: JSON.stringify({ query }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to fetch results')
+        // Try to surface the exact backend error so we know what's failing
+        let serverDetail: string | undefined
+        try {
+          const errBody = await response.json()
+          serverDetail = errBody?.detail || errBody?.message
+        } catch {
+          // no-op
+        }
+
+        if (response.status === 401) {
+          throw new Error(serverDetail ? `Authentication failed: ${serverDetail}` : 'Authentication required - please sign in again')
+        }
+        if (response.status === 403) {
+          throw new Error(serverDetail ? `Insufficient permissions: ${serverDetail}` : 'Insufficient permissions - you need patient/*.read or user/*.read scope')
+        }
+        throw new Error(serverDetail || 'Failed to fetch results')
       }
 
       const data = await response.json()
@@ -80,17 +113,14 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right side - Profile/Status */}
+            {/* Right side - Authentication */}
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-gray-600">Live</span>
               </div>
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
+              {/* This replaces the generic user icon with actual auth */}
+              <AuthButton />
             </div>
           </div>
         </div>
@@ -109,8 +139,27 @@ export default function Home() {
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               Transform complex medical data into actionable insights using natural language queries. 
-              Search patient records, analyze conditions, and visualize healthcare data effortlessly.
+              Search patient records, analyze conditions, and visualize healthcare data with proper SMART on FHIR authorization.
             </p>
+            
+            {/* Show auth status in hero */}
+            {status === "loading" && (
+              <div className="text-emerald-600 font-medium">Checking authentication...</div>
+            )}
+            {!session && status !== "loading" && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md mx-auto">
+                <p className="text-yellow-800 text-sm">
+                  🔒 Sign in required to access FHIR data with proper authorization
+                </p>
+              </div>
+            )}
+            {session && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 max-w-md mx-auto">
+                <p className="text-emerald-800 text-sm">
+                  ✅ Authenticated with {session.scopes?.filter(s => s.includes('read')).length || 0} FHIR permissions
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

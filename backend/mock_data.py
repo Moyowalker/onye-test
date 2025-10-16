@@ -45,33 +45,65 @@ def filter_by_condition(data: list, conditions: list) -> list:
     
     return filtered
 
-def get_mock_data(processed_query: dict):
+def get_mock_data(processed_query: dict, user_context: dict = None):
     """
     Return FHIR-formatted data based on processed query with entity filtering
+    
+    Now with user context! This lets me filter data based on the user's
+    SMART on FHIR permissions and patient context.
     """
     intent = processed_query.get("intent", "unknown")
     entities = processed_query.get("entities", {})
     age_filter = entities.get("age_filter")
     conditions = entities.get("conditions", [])
     
+    # Get user context for authorization filtering
+    # In a real FHIR server, this would constrain database queries
+    user_role = user_context.get("role", "unknown") if user_context else "unknown"
+    patient_filter = user_context.get("filter_patient") if user_context else None
+    
     if intent == "patient_search":
         patients = generate_mock_patients()
+        
+        # Apply user-context filtering first (SMART on FHIR security)
+        if patient_filter:
+            # Patient-scoped access - only return specific patient
+            patients = [p for p in patients if p.get("id") == patient_filter]
+        
         if age_filter:
             patients = filter_by_age(patients, age_filter)
         return to_fhir_bundle(patients, "Patient")
     
     elif intent == "condition_search":
         condition_data = generate_mock_conditions()
+        
+        # Apply user-context filtering first (SMART on FHIR security)
+        if patient_filter:
+            # Patient-scoped access - only return conditions for specific patient
+            condition_data = [c for c in condition_data if c.get("patient_id") == patient_filter]
+        
         if conditions:
             condition_data = filter_by_condition(condition_data, conditions)
         return to_fhir_bundle(condition_data, "Condition")
     
     elif intent == "medication_search":
         medications = generate_mock_medications()
+        
+        # Apply user-context filtering first (SMART on FHIR security)
+        if patient_filter:
+            # Patient-scoped access - only return medications for specific patient
+            medications = [m for m in medications if m.get("patient_id") == patient_filter]
+            
         return to_fhir_bundle(medications, "MedicationRequest")
     
     elif intent == "observation_search":
         observations = generate_mock_observations()
+        
+        # Apply user-context filtering first (SMART on FHIR security)
+        if patient_filter:
+            # Patient-scoped access - only return observations for specific patient
+            observations = [o for o in observations if o.get("patient_id") == patient_filter]
+            
         return to_fhir_bundle(observations, "Observation")
     
     else:

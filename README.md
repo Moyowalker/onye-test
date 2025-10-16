@@ -1,8 +1,35 @@
-# AI on FHIR Query System
+# AI on FHIR Query System with OAuth 2.0 + SMART on FHIR
 
 Hello Emmanuel,
 
-This is my take on building a natural language interface for FHIR healthcare data. The goal was to let people query patient records and medical conditions without writing complex database queries — just using plain English.
+This is my take on building a natural language interface for FHIR healthcare data with secure authentication. The goal was to let people query patient records and medical conditions without writing complex database queries — just using plain English, while maintaining proper healthcare security standards.
+
+## 🔗 Quick Links
+
+- 🖥️ [Frontend Live Demo](https://onye-test.vercel.app)
+- 🧠 [HIPAA Compliance Plan (PDF)](./HIPAA_Compliance_and_Security_Plan_by_Moyo.pdf)
+- 🐳 [Docker Guide](./docker_guide.md)
+- 🔐 [Auth0 Setup Guide](./AUTH0_SETUP.md)
+
+## 🔒 New: Authentication & Authorization
+
+I've implemented **OAuth 2.0 with SMART on FHIR** authentication for enterprise-grade security:
+
+- **OAuth 2.0 Flow**: Secure authentication using Auth0 as identity provider
+- **SMART on FHIR Scopes**: Healthcare-specific permissions (`patient/*.read`, `user/*.read`)
+- **JWT Validation**: Backend validates tokens with Auth0 JWKS for security
+- **Role-Based Access**: Users see only data they're authorized to access
+- **Session Management**: Secure session handling with NextAuth.js
+
+### Authentication Features
+- 🔐 Login/logout with Auth0
+- 👤 User profile display with permissions
+- 🎯 Scope-based data filtering (patients only see their authorized data)
+- 🔑 JWT bearer token authentication for API calls
+- 🚫 Protected routes and endpoints
+- ⚡ Automatic token refresh
+
+See [AUTH0_SETUP.md](./AUTH0_SETUP.md) for complete setup instructions.
 
 ## 🔗 Quick Links
 
@@ -36,14 +63,40 @@ I deployed the frontend to Vercel and Dockerized everything so you can spin it u
 
 ## Quick Setup
 
-### Docker Way (easiest):
+### Option 1: With Authentication (Full Experience)
+
+1. **Set up Auth0** (see [AUTH0_SETUP.md](./AUTH0_SETUP.md) for detailed guide):
+   - Create Auth0 account and application
+   - Configure SMART on FHIR scopes
+   - Set up API with JWT validation
+
+2. **Configure Environment**:
+   ```bash
+   # Copy environment templates
+   cp backend/.env.example backend/.env
+   cp frontend/src/.env.local.example frontend/.env.local
+   
+   # Fill in your Auth0 values in both .env files
+   ```
+
+3. **Run with Docker**:
+   ```bash
+   git clone https://github.com/Moyowalker/onye-test.git
+   cd onye-test
+   docker-compose up --build
+   ```
+
+### Option 2: Quick Demo (No Auth Setup)
+
+For a quick demo without authentication setup:
 ```bash
 git clone https://github.com/Moyowalker/onye-test.git
 cd onye-test
+# Comment out authentication middleware in backend/main.py
 docker-compose up --build
 ```
 
-Then open:
+### Access Points:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - API docs: http://localhost:8000/docs
@@ -73,6 +126,8 @@ npm run dev
 
 - **Backend**: FastAPI + spaCy for NLP + Python 3.11
 - **Frontend**: Next.js 14 + TypeScript + Tailwind
+- **Authentication**: OAuth 2.0 + SMART on FHIR via Auth0
+- **Security**: JWT validation + scope-based authorization
 - **Deployment**: Docker + Vercel
 - **Data**: FHIR R4 compliant mock resources
 
@@ -97,17 +152,21 @@ npm run dev
 
 1. **Real FHIR Integration**: Hook this up to an actual FHIR server (HAPI FHIR or Azure FHIR service) instead of mock data
 
-2. **Better NLP**: The current parser works but could be smarter. Would love to add support for complex queries like "male patients over 60 with diabetes OR hypertension"
+2. **Enhanced SMART Authorization**: Implement patient selection workflow and launch context for full EHR integration
 
-3. **Authentication**: Add proper auth flow (OAuth2/OIDC) and role-based access control
+3. **Better NLP**: The current parser works but could be smarter. Would love to add support for complex queries like "male patients over 60 with diabetes OR hypertension"
 
-4. **Testing**: Need unit tests for the NLP parser and integration tests for the API endpoints
+4. **Advanced Auth Features**: Add user management, admin roles, API key authentication for service-to-service calls
 
-5. **Caching**: Redis layer for frequently accessed FHIR resources
+5. **Testing**: Need unit tests for the NLP parser, authentication middleware, and integration tests for the API endpoints
 
-6. **Error Handling**: More graceful error messages and retry logic
+6. **Caching**: Redis layer for frequently accessed FHIR resources and JWT validation caching
 
-7. **Observability**: Proper logging (structured JSON logs) and maybe OpenTelemetry for tracing
+7. **Error Handling**: More graceful error messages and retry logic for Auth0 failures
+
+8. **Observability**: Proper logging (structured JSON logs) and maybe OpenTelemetry for tracing
+
+9. **Performance**: Database integration with proper indexing for large FHIR datasets
 
 ## Notes
 

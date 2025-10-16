@@ -34,7 +34,10 @@ python -m spacy download en_core_web_sm
 
 # Run the server
 
-uvicorn main:app --reload- `POST /query` - Natural language query endpoint
+uvicorn main:app --reload `POST /query` - Natural language query endpoint
+
+python -m uvicorn main:app --reload
+
 
 ```- `GET /api/health` - Health check
 

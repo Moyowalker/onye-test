@@ -5,3 +5,11 @@ python-multipart>=0.0.6
 spacy>=3.7.0
 transformers>=4.35.0
 torch>=2.1.0
+
+# Authentication & JWT handling
+# I need these for validating OAuth 2.0 access tokens from Auth0
+PyJWT>=2.8.0
+cryptography>=41.0.0
+python-jose[cryptography]>=3.3.0
+requests>=2.31.0
+python-dotenv>=1.0.0
