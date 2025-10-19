@@ -140,6 +140,112 @@ export default function QueryResults({ query, nlpAnalysis, fhirResponse }: Query
     }
   }
 
+  // ---------- Export helpers ----------
+  const getPrimaryResourceType = (): string | undefined => {
+    const t = fhirResponse.entry?.[0]?.resource?.resourceType
+    return t
+  }
+
+  const escapeCsv = (val: any): string => {
+    const s = val == null ? '' : String(val)
+    if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+      return '"' + s.replace(/"/g, '""') + '"'
+    }
+    return s
+  }
+
+  const buildRows = (): { headers: string[]; rows: string[][] } => {
+    const entries = fhirResponse.entry || []
+    const type = getPrimaryResourceType()
+    if (!type) return { headers: ['resourceType', 'id'], rows: [] }
+
+    if (entries.every(e => e.resource?.resourceType === type)) {
+      if (type === 'Patient') {
+        const headers = ['id', 'name', 'gender', 'birthDate', 'age']
+        const rows = entries.map(e => {
+          const p = e.resource as Patient
+          const name = getPatientName(p)
+          const age = getAge(p)
+          return [p.id, name, p.gender || '', p.birthDate || '', typeof age === 'number' ? String(age) : '']
+        })
+        return { headers, rows }
+      }
+      if (type === 'Condition') {
+        const headers = ['id', 'code', 'patient', 'onset']
+        const rows = entries.map(e => {
+          const c = e.resource as Condition
+          const code = c.code?.coding?.[0]?.display || ''
+          const subj = (c as any).subject?.display || ''
+          return [c.id, code, subj, c.onsetDateTime || '']
+        })
+        return { headers, rows }
+      }
+      if (type === 'Observation') {
+        const headers = ['id', 'code', 'value', 'unit', 'effective', 'patient']
+        const rows = entries.map(e => {
+          const o = e.resource as any
+          const code = o.code?.text || o.code?.coding?.[0]?.display || ''
+          const val = o.valueQuantity?.value ?? ''
+          const unit = o.valueQuantity?.unit ?? ''
+          const eff = o.effectiveDateTime || ''
+          const pat = o.subject?.display || o.subject?.reference || ''
+          return [o.id, code, String(val), unit, eff, pat]
+        })
+        return { headers, rows }
+      }
+    }
+    // Fallback: dump JSON string per resource when mixed or unknown
+    const headers = ['resourceType', 'id', 'json']
+    const rows = (fhirResponse.entry || []).map(e => [
+      e.resource?.resourceType || '',
+      e.resource?.id || '',
+      JSON.stringify(e.resource)
+    ])
+    return { headers, rows }
+  }
+
+  const downloadCSV = () => {
+    const { headers, rows } = buildRows()
+    const lines = [headers.map(escapeCsv).join(',')].concat(
+      rows.map(r => r.map(escapeCsv).join(','))
+    )
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const rt = getPrimaryResourceType() || 'results'
+    a.href = url
+    a.download = `${rt}-export.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  const downloadPDF = () => {
+    const { headers, rows } = buildRows()
+    const rt = getPrimaryResourceType() || 'results'
+    const w = window.open('', '_blank')
+    if (!w) return
+    const style = `
+      <style>
+        body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; padding: 24px; }
+        h1 { font-size: 18px; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; font-size: 12px; }
+        th { background: #f3f4f6; text-align: left; }
+      </style>
+    `
+    const thead = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`
+    const tbody = rows.map(r => `<tr>${r.map(c => `<td>${(c ?? '').toString().replace(/</g, '&lt;')}</td>`).join('')}</tr>`).join('')
+    w.document.write(`<!doctype html><html><head><meta charset='utf-8'/>${style}</head><body>`)
+    w.document.write(`<h1>FHIR ${rt} Export</h1>`)
+    w.document.write(`<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`)
+    w.document.write(`</body></html>`)
+    w.document.close()
+    w.focus()
+    w.print()
+  }
+
   return (
     <div className="w-full max-w-4xl mx-auto mt-6">
       {/* Query Info */}
@@ -179,9 +285,25 @@ export default function QueryResults({ query, nlpAnalysis, fhirResponse }: Query
           <h2 className="text-2xl font-bold text-gray-900">
             Results <span className="inline-flex items-center justify-center w-8 h-8 ml-2 text-sm font-bold text-emerald-600 bg-emerald-100 rounded-full">{fhirResponse.total}</span>
           </h2>
-          <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
-            {fhirResponse.resourceType}
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={downloadCSV}
+              className="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300"
+              title="Download results as CSV"
+            >
+              Export CSV
+            </button>
+            <button
+              onClick={downloadPDF}
+              className="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300"
+              title="Print or Save as PDF"
+            >
+              Export PDF
+            </button>
+            <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
+              {fhirResponse.resourceType}
+            </span>
+          </div>
         </div>
 
         {fhirResponse.entry && fhirResponse.entry.length > 0 ? (

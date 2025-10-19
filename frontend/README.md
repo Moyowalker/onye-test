@@ -48,7 +48,7 @@ I'm using Tailwind for styling because it's fast and keeps the components self-c
 
 3. **Query history**: Save recent queries in localStorage so users can revisit them
 
-4. **Export results**: Add a button to download results as CSV or PDF
+4. **Export results**: Done — you can download results as CSV or print/save as PDF from the Results header
 
 5. **Responsive charts**: The Recharts work okay on mobile but could be better optimized for small screens
 
